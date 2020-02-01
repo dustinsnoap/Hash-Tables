@@ -18,75 +18,63 @@ class HashTable:
 
 
     def _hash(self, key):
-        '''
-        Hash an arbitrary key and return an integer.
-
-        You may replace the Python hash with DJB2 as a stretch goal.
-        '''
         return hash(key)
 
-
     def _hash_djb2(self, key):
-        '''
-        Hash an arbitrary key using DJB2 hash
-
-        OPTIONAL STRETCH: Research and implement DJB2
-        '''
-        pass
-
+        hash = 5381
+        for x in key:
+            hash = ((hash << 5) + hash) + ord(x)
+        return hash
 
     def _hash_mod(self, key):
-        '''
-        Take an arbitrary key and return a valid integer index
-        within the storage capacity of the hash table.
-        '''
-        return self._hash(key) % self.capacity
+        return self._hash_djb2(key) % self.capacity
 
 
     def insert(self, key, value):
-        '''
-        Store the value with the given key.
+        brownie = self._hash_mod(key)
+        node = self.storage[brownie]
 
-        Hash collisions should be handled with Linked List Chaining.
-
-        Fill this in.
-        '''
-        pass
-
-
+        #if no node is found create a new node
+        #or if key is the same, overwrite current node with new node
+        if node is None or node.key == key:
+            self.storage[brownie] = LinkedPair(key, value)
+        else:
+            while True:
+                if node.next is None or node.key == key:
+                    node.next = LinkedPair(key, value)
+                    break
+                node = node.next
 
     def remove(self, key):
-        '''
-        Remove the value stored with the given key.
-
-        Print a warning if the key is not found.
-
-        Fill this in.
-        '''
-        pass
-
+        brownie = self._hash_mod(key)
+        node = self.storage[brownie]
+        prev = None
+        while node.next is not None and node.key != key:
+            prev = node
+            node = node.next
+        if prev is None:
+            self.storage[brownie] = node.next
+        else:
+            prev.next = node.next
 
     def retrieve(self, key):
-        '''
-        Retrieve the value stored with the given key.
-
-        Returns None if the key is not found.
-
-        Fill this in.
-        '''
-        pass
-
+        brownie = self._hash_mod(key)
+        node = self.storage[brownie]
+        if node == None: return None
+        while True:
+            if node.key == key:
+                return node.value
+            node = node.next
 
     def resize(self):
-        '''
-        Doubles the capacity of the hash table and
-        rehash all key/value pairs.
-
-        Fill this in.
-        '''
-        pass
-
-
+        self.capacity *= 2
+        old = self.storage
+        self.storage = [None] * self.capacity
+        for o in old:
+            node = o
+            while node is not None:
+                self.insert(node.key, node.value)
+                node = node.next
 
 if __name__ == "__main__":
     ht = HashTable(2)
